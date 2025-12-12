@@ -1,0 +1,22 @@
+name: Check Disk Space
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-disk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check disk space
+        run: |
+          echo "=== Disk Space Overview ==="
+          df -h
+          echo ""
+          echo "=== Root filesystem details ==="
+          df -h /
+          echo ""
+          echo "=== Largest directories in / ==="
+          sudo du -sh /* 2>/dev/null | sort -hr | head -20
+          echo ""
+          echo "=== Total available space ==="
+          df -h --total | tail -1
