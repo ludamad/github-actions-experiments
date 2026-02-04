@@ -1,0 +1,14 @@
+name: ci3
+
+on:
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simulate CI (2 minutes)
+        run: |
+          echo "Starting CI checks..."
+          sleep 120
+          echo "CI checks passed."

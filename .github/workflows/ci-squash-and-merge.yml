@@ -1,0 +1,53 @@
+name: CI Squash and Merge (merge train version)
+
+on:
+  pull_request_review:
+    types: [submitted]
+  workflow_run:
+    workflows: ["ci3"]
+    types: [completed]
+  check_suite:
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+  actions: read
+
+jobs:
+  squash-merge:
+    runs-on: ubuntu-latest
+    # Only proceed on approval, successful ci3, or successful check suite
+    if: >
+      (github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'check_suite' && github.event.check_suite.conclusion == 'success')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve PR number
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fn = require('./.github/scripts/get-pr-number.js');
+            await fn({ github, context, core });
+
+      - name: Check merge conditions
+        if: steps.pr.outputs.should_continue == 'true'
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fn = require('./.github/scripts/check-merge-conditions.js');
+            await fn({ github, context, core }, ${{ steps.pr.outputs.pr_number }});
+
+      - name: Squash and merge
+        if: steps.pr.outputs.should_continue == 'true' && steps.check.outputs.ready == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fn = require('./.github/scripts/squash-merge.js');
+            await fn({ github, context, core }, ${{ steps.pr.outputs.pr_number }});
