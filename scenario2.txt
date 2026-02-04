@@ -1,0 +1,1 @@
+Scenario 2: ci3 passes with label but no approval
