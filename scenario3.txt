@@ -1,0 +1,1 @@
+Scenario 3: approval + label before ci3, ci3 triggers merge
